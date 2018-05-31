@@ -1,0 +1,4 @@
+x found in 3 packages. You must indicate which one you want with ::
+ * a::x
+ * b::x
+ * c::x

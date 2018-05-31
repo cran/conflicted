@@ -1,0 +1,15 @@
+9fe8ca624b9fbcb41c976f2ce6ed7f6a *DESCRIPTION
+b6775502e251604e06f8065b5a56cbff *NAMESPACE
+8312551536ece26cf46804f3a315db7f *R/conflicted.R
+01a376a938d55ff4b64a2a2cc43515ae *R/conflicts.R
+6d83d8914b5859fb5e9a8b2d5b990be0 *R/package.R
+29cb03974aa1a50067160150eb85d5f0 *R/shim.R
+676c3f320f39083ddb13f41fd1f08026 *R/utils.R
+30445f97cef78a33a96e8bd4630c0b8a *R/zzz.R
+12fd1bae87b0ae9b6b9901e936f661ce *README.md
+545029e27d516eaef13bbeb70db6b631 *man/conflicted-package.Rd
+283584d5afb5d58ed352841dc857683b *tests/testthat.R
+2cea71cd5b6ee161034e9c5b8dcf0ac9 *tests/testthat/conflicts-error.txt
+c13dae5598571a7c6d11eef3237c2a65 *tests/testthat/test-conflicts.R
+225879355cde38e0d7712058483275ed *tests/testthat/test-shim.R
+f1b16b87ca38095090ccf685c97a52c8 *tests/testthat/test-zzz.R
