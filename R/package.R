@@ -1,25 +1,43 @@
 pkgs_attached <- function() {
-  gsub("package:", "", grep("package:", search(), value = TRUE))
+  pkgs <- gsub("package:", "", grep("package:", search(), value = TRUE))
+
+  # Ignore any packages loaded by devtools since these contain
+  # export all imported functions by default
+  is_dev <- vapply(pkgs, pkg_devtools, logical(1))
+  pkgs[!is_dev]
 }
 
-pkg_env <- function(x) {
-  as.environment(paste0("package:", x))
+pkg_attached <- function(x) {
+  paste0("package:", x) %in% search()
 }
 
-pkg_ls <- function(x) {
-  ls(envir = pkg_env(x))
+pkg_ls <- function(pkg) {
+  ns <- getNamespace(pkg)
+  exports <- getNamespaceExports(ns)
+
+  names <- intersect(exports, env_names(ns))
+  int <- grepl("^.__", names)
+  names[!int]
 }
 
 pkg_get <- function(pkg, name) {
-  get(name, envir = pkg_env(pkg))
+  get(name, envir = ns_env(pkg), inherits = FALSE)
+}
+
+# Not currently used because pkg_get() can't find it, and it seems unlikely
+# to be a common source of conflicts
+pkg_data <- function(x) {
+  ns <- ns_env(x)
+  lazy_data <- .getNamespaceInfo(ns, "lazydata")
+
+  if (is.null(lazy_data))
+    return(character())
+
+  env_names(lazy_data)
 }
 
 base_packages <- c(
-  "KernSmooth", "MASS", "Matrix", "base", "boot", "class", "cluster",
-  "codetools", "compiler", "datasets", "foreign", "grDevices",
-  "graphics", "grid", "lattice", "methods", "mgcv", "nlme", "nnet",
-  "parallel", "rlanglibtest", "rpart", "spatial", "splines", "stats",
-  "stats4", "survival", "tcltk", "tools", "translations", "utils"
+  "base", "datasets", "grDevices", "graphics", "methods", "stats", "utils"
 )
 
 pkgs_base <- function(x) {

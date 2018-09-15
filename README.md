@@ -32,29 +32,70 @@ devtools::install_github("r-lib/conflicted")
 
 ## Usage
 
-conflicted does not export any functions. To use it, all you need to do
-is load it:
+To use conflicted, all you need to do is load it:
 
 ``` r
 library(conflicted)
 library(dplyr)
 
 filter(mtcars, cyl == 8)
-#> Error: filter found in 2 packages. You must indicate which one you want with ::
-#>  * dplyr::filter
-#>  * stats::filter
+#> Error: [conflicted] `filter` found in 2 packages.
+#> Either pick the one you want with `::` 
+#> * dplyr::filter
+#> * stats::filter
+#> Or declare a preference with `conflicted_prefer()`
+#> * conflict_prefer("filter", "dplyr")
+#> * conflict_prefer("filter", "stats")
 ```
 
-You can also use assignment to resolve the conflict once for the entire
-session:
+As suggested, you can either namespace individual calls:
 
 ``` r
-filter <- dplyr::filter
+dplyr::filter(mtcars, am & cyl == 8)
+#>    mpg cyl disp  hp drat   wt qsec vs am gear carb
+#> 1 15.8   8  351 264 4.22 3.17 14.5  0  1    5    4
+#> 2 15.0   8  301 335 3.54 3.57 14.6  0  1    5    8
+```
+
+Or declare a session-wide preference:
+
+``` r
+conflict_prefer("filter", "dplyr")
+#> [conflicted] Will prefer dplyr::filter over any other package
 filter(mtcars, am & cyl == 8)
 #>    mpg cyl disp  hp drat   wt qsec vs am gear carb
 #> 1 15.8   8  351 264 4.22 3.17 14.5  0  1    5    4
 #> 2 15.0   8  301 335 3.54 3.57 14.6  0  1    5    8
 ```
+
+I recommend declaring preferences directly underneath the corresponding
+library call:
+
+``` r
+library(dplyr)
+conflict_prefer("filter", "dplyr")
+```
+
+You can ask conflicted to report any conflicts in the current session:
+
+``` r
+conflict_scout()
+#> 6 conflicts:
+#> * `filter`   : [dplyr]
+#> * `intersect`: [dplyr]
+#> * `lag`      : dplyr, stats
+#> * `setdiff`  : [dplyr]
+#> * `setequal` : [dplyr]
+#> * `union`    : [dplyr]
+```
+
+Functions surrounded by `[]` have been chosen using one of the built-in
+rules. Here `filter()` has been selected because of the preference
+declared above; the set operations have been selected because they
+follow the superset principle and extend the API of the base
+equivalents.
+
+### How it works
 
 Loading conflicted creates a new “conflicted” environment that is
 attached just after the global environment. This environment contains an
@@ -64,17 +105,26 @@ disambiguate the name. The conflicted environment also contains bindings
 for `library()` and `require()` that suppress conflict reporting and
 update the conflicted environment with any new conflicts.
 
-### .Rprofile
+## Alternative approaches
 
-If you want to make this behaviour the default, you can load conflicted
-in your `~/.Rprofile` (the easiest way to find and edit this file is
-with `usethis::edit_r_profile()`):
+It is worth comparing conflicted to
+[modules](http://github.com/klmr/modules) and
+[import](https://github.com/smbache/import). Both packages provide
+strict alternatives to `library()`, giving much finer control over what
+functions are added to the search path.
 
 ``` r
-if (interactive()) {
-  suppressMessages(suppressWarnings(require(conflicted)))
-}
+# modules expects you to namespace all package functions
+dplyr <- modules::import_package('dplyr')
+dplyr$filter(mtcars, cyl == 8)
+
+# import expects you to explicit load functions
+import::from(dplyr, select, arrange, dplyr_filter = filter)
+dplyr_filter(mtcars, cyl == 8)
 ```
+
+These require more upfront work than conflicted, in return for greater
+precision and control.
 
 ## Code of conduct
 
