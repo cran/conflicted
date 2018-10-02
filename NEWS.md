@@ -1,3 +1,11 @@
+# conflicted 1.0.1
+
+* Internal `has_moved()` function no longer fails when it encounters a 
+  call to `.Deprecated()` with no arguments (#29).
+
+* `.conflicts` environment is correctly removed and replaced each time
+  a new package is loaded (#28).
+
 # conflicted 1.0.0
 
 ### New functions

@@ -1,15 +1,15 @@
-37a9de8649bf873b213ea99dbc23ee2d *DESCRIPTION
+92aeeb04ee85fa3d1e78bea34ac2fdf6 *DESCRIPTION
 8b9f55889e5db405fa30c2be3de2a256 *NAMESPACE
-3aa528ed401e6db853b244fd1001df5b *NEWS.md
+9f99320740925fe49268fdc149ea1c24 *NEWS.md
 8312551536ece26cf46804f3a315db7f *R/conflicted.R
-162a5e5ac2ee34a88a9cfa7b37a3e3be *R/conflicts.R
+582b2f1c80c5d0f49d5e74760552de5d *R/conflicts.R
 eec9cda92e192f3ce571c9af1cd5b2fd *R/disambiguate.R
-a19232f642ac42cc931b78d84cc36309 *R/find.R
+be284e8d92bf93587fb15f946781f26f *R/find.R
 f85966e2ae7cb2dd6b7664e8a2b39fb1 *R/package.R
 87fceeb8cd4ef5fa29ad77952143eb18 *R/prefer.R
 f1edaef21a0629c156e659ac577c064b *R/shim.R
 bcbd83c742a19f94fb7f5c9e962ebfae *R/utils.R
-a12c4d359d78d5774eaf8319a9e3e9f3 *R/zzz.R
+30445f97cef78a33a96e8bd4630c0b8a *R/zzz.R
 9000bae4cd2080f05d3bd33d524cde75 *README.md
 4666907d20654ab9996c939d54a7b089 *man/conflict_prefer.Rd
 e7a0a76452844a0877bf00f165e85617 *man/conflict_scout.Rd
@@ -20,4 +20,4 @@ fb4b4311afa52d0a13fcc52a051a5ce3 *tests/testthat/test-disambiguate.R
 b817310c88f43885a145e11b166f98cf *tests/testthat/test-find.R
 e77488b470710f94fba5128f0869aa26 *tests/testthat/test-prefer.R
 25b4d6c2fe2fc8a25fde36e0764ac9b3 *tests/testthat/test-shim.R
-9a6d4897b2a5be673803acd360fa6069 *tests/testthat/test-zzz.R
+27c0974d214cbf1e4295782b441a8dbf *tests/testthat/test-zzz.R
