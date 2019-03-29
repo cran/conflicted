@@ -1,13 +1,30 @@
-shim_library <- function(package,
-                         help,
-                         pos = 2,
-                         lib.loc = NULL,
-                         character.only = FALSE,
-                         logical.return = FALSE,
-                         warn.conflicts = TRUE,
-                         quietly = FALSE,
-                         verbose = getOption("verbose")
-                         ) {
+shims_bind <- function(env = caller_env()) {
+  if (getRversion() >= "3.6.0") {
+    env_bind(env,
+      library = shim_library_3_6,
+      require = shim_require_3_6
+    )
+  } else {
+    env_bind(env,
+      library = shim_library_3_1,
+      require = shim_require_3_1
+    )
+  }
+
+}
+
+# library -----------------------------------------------------------------
+
+shim_library_3_1 <- function(package,
+                             help,
+                             pos = 2,
+                             lib.loc = NULL,
+                             character.only = FALSE,
+                             logical.return = FALSE,
+                             warn.conflicts = TRUE,
+                             quietly = FALSE,
+                             verbose = getOption("verbose")
+                             ) {
 
   if (!missing(package)) {
     package <- package_name(enquo(package), character.only = character.only)
@@ -26,7 +43,6 @@ shim_library <- function(package,
       quietly = quietly,
       verbose = verbose
     )
-
   } else if (!missing(help)) {
     help <- package_name(enquo(help), character.only = character.only)
     library(
@@ -39,14 +55,69 @@ shim_library <- function(package,
       logical.return = logical.return
     )
   }
-
 }
 
-shim_require <- function(package,
-                         lib.loc = NULL,
-                         quietly = FALSE,
-                         warn.conflicts = TRUE,
-                         character.only = FALSE) {
+if (getRversion() > "3.6.0") {
+  shim_library_3_6 <- function(package,
+                               help,
+                               pos = 2,
+                               lib.loc = NULL,
+                               character.only = FALSE,
+                               logical.return = FALSE,
+                               warn.conflicts,
+                               quietly = FALSE,
+                               verbose = getOption("verbose"),
+                               mask.ok,
+                               exclude,
+                               include.only,
+                               attach.required = missing(include.only)
+                               ) {
+
+    if (!missing(package)) {
+      package <- package_name(enquo(package), character.only = character.only)
+
+      conflicts_reset()
+      on.exit(conflicts_register())
+      on_detach(package, function() conflicts_remove(package))
+
+      library(
+        package,
+        pos = pos,
+        lib.loc = lib.loc,
+        character.only = TRUE,
+        logical.return = logical.return,
+        warn.conflicts = FALSE,
+        quietly = quietly,
+        verbose = verbose,
+        mask.ok = mask.ok,
+        exclude = exclude,
+        include.only = include.only,
+        attach.required = attach.required
+      )
+    } else if (!missing(help)) {
+      help <- package_name(enquo(help), character.only = character.only)
+      library(
+        help = help,
+        character.only = TRUE
+      )
+    } else {
+      library(
+        lib.loc = lib.loc,
+        logical.return = logical.return
+      )
+    }
+  }
+} else {
+  shim_library_3_6 <- function(...) {}
+}
+
+# require -----------------------------------------------------------------
+
+shim_require_3_1 <- function(package,
+                             lib.loc = NULL,
+                             quietly = FALSE,
+                             warn.conflicts = TRUE,
+                             character.only = FALSE) {
 
   package <- package_name(enquo(package), character.only = character.only)
 
@@ -61,8 +132,43 @@ shim_require <- function(package,
     warn.conflicts = FALSE,
     character.only = TRUE
   )
-
 }
+
+if (getRversion() > "3.6.0") {
+  shim_require_3_6 <- function(package,
+                               lib.loc = NULL,
+                               quietly = FALSE,
+                               warn.conflicts,
+                               character.only = FALSE,
+                               mask.ok,
+                               exclude,
+                               include.only,
+                               attach.required = missing(include.only)
+                               ) {
+
+    package <- package_name(enquo(package), character.only = character.only)
+
+    conflicts_reset()
+    on.exit(conflicts_register())
+    on_detach(package, function() conflicts_remove(package))
+
+    require(
+      package,
+      lib.loc = lib.loc,
+      quietly = quietly,
+      warn.conflicts = FALSE,
+      character.only = TRUE,
+      mask.ok = mask.ok,
+      exclude = exclude,
+      include.only = include.only,
+      attach.required = attach.required
+    )
+  }
+} else {
+  shim_require_3_6 <- function(...) {}
+}
+
+# Helpers -----------------------------------------------------------------
 
 package_name <- function(package, character.only = FALSE) {
   if (!character.only) {

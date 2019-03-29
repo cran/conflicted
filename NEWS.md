@@ -1,3 +1,7 @@
+# conflicted 1.0.2
+
+* Align with changes to R 3.6
+
 # conflicted 1.0.1
 
 * Internal `has_moved()` function no longer fails when it encounters a 
