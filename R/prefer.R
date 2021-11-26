@@ -1,9 +1,14 @@
 #' Persistently prefer one function over another
 #'
+#' @description
 #' `conflict_prefer()` allows you to declare "winners" of conflicts.
 #' You can either declare a specific pairing (i.e. `dplyr::filter()` beats
 #' `base::filter()`), or an overall winner (i.e. `dplyr::filter()` beats
 #' all comers).
+#'
+#' Use `conficted_prefer_all()` to prefer all functions in a package, or
+#' `conflicted_prefer_matching()` to prefer functions that match a regular
+#' expression.
 #'
 #' @section Best practices:
 #' I recommend placing calls to `conflict_prefer()` at the top of your
@@ -22,6 +27,17 @@
 #' # Prefer over specified package or packages
 #' conflict_prefer("filter", "dplyr", "base")
 #' conflict_prefer("filter", "dplyr", c("base", "filtration"))
+#'
+#' # Prefer many functions that match a pattern
+#' \dontrun{
+#' # Prefer col_* from vroom
+#' conflict_prefer_matching("^col_", "vroom")
+#' }
+#' # Or all functions from a package:
+#' \dontrun{
+#' # Prefer all tidylog functions over dtplyr functions
+#' conflict_prefer_all("tidylog", "dtplyr")
+#' }
 conflict_prefer <- function(name, winner, losers = NULL, quiet = FALSE) {
   stopifnot(is.character(name), length(name) == 1)
   stopifnot(is.character(winner), length(winner) == 1)
@@ -29,16 +45,16 @@ conflict_prefer <- function(name, winner, losers = NULL, quiet = FALSE) {
 
   if (env_has(prefs, name)) {
     if (!quiet)
-      message("[conflicted] Removing existing preference")
+      inform("[conflicted] Removing existing preference")
   }
 
   if (!quiet) {
     full <- style_name(winner, "::", backtick(name))
     if (is.null(losers)) {
-      message("[conflicted] Will prefer ", full, " over any other package")
+      inform(paste0("[conflicted] Will prefer ", full, " over any other package"))
     } else {
       alt <- style_name(losers, "::", backtick(name))
-      message("[conflicted] Will prefer ", full, " over ", paste(alt, collapse = ", "))
+      inform(paste0("[conflicted] Will prefer ", full, " over ", paste(alt, collapse = ", ")))
     }
   }
 
@@ -48,6 +64,26 @@ conflict_prefer <- function(name, winner, losers = NULL, quiet = FALSE) {
     conflicts_register()
 
   invisible()
+}
+
+#' @export
+#' @param pattern Regular expression used to select objects from the `winner`
+#'   package.
+#' @rdname conflict_prefer
+conflict_prefer_matching <- function(pattern, winner, losers = NULL, quiet = FALSE) {
+  names <- grep(pattern, sort(pkg_ls(winner)), value = TRUE)
+  for (name in names) {
+    conflict_prefer(name, winner, losers = losers, quiet = quiet)
+  }
+}
+
+#' @export
+#' @rdname conflict_prefer
+conflict_prefer_all <- function(winner, losers = NULL, quiet = FALSE) {
+  names <- sort(pkg_ls(winner))
+  for (name in names) {
+    conflict_prefer(name, winner, losers = losers, quiet = quiet)
+  }
 }
 
 prefs_resolve <- function(fun, conflicts) {

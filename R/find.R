@@ -34,6 +34,9 @@ conflict_scout <- function(pkgs = NULL) {
   # a function that has moved packages should never conflict
   conflicts <- map2(names(conflicts), conflicts, drop_moved)
 
+  # a function doesn't conflict with a non-dataset
+  conflicts <- map2(names(conflicts), conflicts, function_lookup)
+
   # apply declared user preferences
   for (fun in ls(prefs)) {
     if (!has_name(conflicts, fun))
@@ -94,13 +97,30 @@ superset_principle <- function(fun, pkgs) {
   } else if (length(non_base) == 1) {
     # only one so see if it assumes superset principle
     if (is_superset(fun, non_base, base = base)) {
-      non_base
+      character()
     } else {
       pkgs
     }
   } else {
-    non_base
+    pkgs
   }
+}
+
+function_lookup <- function(fun, pkgs) {
+  # Only apply this rule if exaclty two conflicts
+  if (length(pkgs) != 2) {
+    return(pkgs)
+  }
+
+  pkg1 <- getExportedValue(pkgs[[1]], fun)
+  pkg2 <- getExportedValue(pkgs[[2]], fun)
+
+  if (is.function(pkg1) != is.function(pkg2)) {
+    character()
+  } else {
+    pkgs
+  }
+
 }
 
 is_superset <- function(fun, pkg, base) {
@@ -109,6 +129,11 @@ is_superset <- function(fun, pkg, base) {
     return(FALSE)
 
   pkg_obj <- getExportedValue(pkg, fun)
+  # If it's a standardGeneric, assume the author know's what they're doing
+  if (methods::is(pkg_obj, "standardGeneric")) {
+    return(TRUE)
+  }
+
   base_obj <- getExportedValue(base, fun)
   if (!is.function(pkg_obj) || !is.function(base_obj))
     return(FALSE)
@@ -118,6 +143,11 @@ is_superset <- function(fun, pkg, base) {
   args_pkg <- names(fn_fmls(pkg_obj))
   if (identical(args_pkg, "..."))
     return(TRUE)
+
+  if (is.primitive(base_obj)){
+    return(FALSE)
+  }
+
   args_base <- names(fn_fmls(base_obj))
 
   # To be a superset, all base arguments must be included in the pkg funtion
@@ -130,7 +160,8 @@ drop_moved <- function(fun, pkgs) {
 }
 
 
-has_moved <- memoise::memoise(function(pkg, fun, obj = NULL) {
+# memoised onLoad
+has_moved <- function(pkg, fun, obj = NULL) {
   if (is.null(obj)) {
     obj <- getExportedValue(pkg, fun)
   }
@@ -154,4 +185,4 @@ has_moved <- memoise::memoise(function(pkg, fun, obj = NULL) {
     return(FALSE)
 
   grepl(paste0("::", fun), new)
-})
+}
