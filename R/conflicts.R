@@ -10,6 +10,13 @@ conflicts_register <- function(pkgs = pkgs_attached()) {
   env
 }
 
+conflicts_register_if_needed <- function(package) {
+  if (pkg_attached(package)) {
+    conflicts_register()
+  }
+  invisible()
+}
+
 conflicts_remove <- function(pkg) {
   # The detach hook is called before the package is removed from the search path
   conflicts_register(setdiff(pkgs_attached(), pkg))
@@ -30,8 +37,4 @@ conflicts_reset <- function() {
   if (conflicts_attached()) {
     detach(".conflicts", character.only = TRUE)
   }
-}
-
-conflicts_ls <- function() {
-  env_names(scoped_env(".conflicts"))
 }

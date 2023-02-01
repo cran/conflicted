@@ -22,13 +22,13 @@ disambiguate_infix <- function(name, pkgs) {
     if (from_save(sys.calls()))
       return(NULL)
 
-    bullets <- paste0("* conflict_prefer(\"", name, "\", \"", pkgs, "\")")
-    msg <- paste0(
-      "[conflicted] ", style_name("`", name, "`"), " found in ", length(pkgs), " packages.\n",
-      "Declare a preference with `conflict_prefer()`:\n",
-      paste0(bullets, collapse = "\n")
-    )
-    abort(msg)
+    prefer <- prefer_bullets(pkgs, name)
+
+    cli::cli_abort(c(
+      "{label_conflicted()} {.strong {name}} found in {length(pkgs)} packages.",
+      "Declare a preference with {.fn {add_ns('conflicts_prefer')}}:",
+      prefer
+    ))
   }
 }
 
@@ -41,21 +41,49 @@ disambiguate_prefix <- function(name, pkgs) {
       return(NULL)
 
     bt_name <- backtick(name)
-    bullets_temp <- paste0("* ", style_name(pkgs, "::", bt_name))
-    bullets_pers <- paste0("* ", "conflict_prefer(\"", name, "\", \"", pkgs, "\")")
 
-    msg <- paste0(
-      "[conflicted] ", style_name("`", name, "`"), " found in ", length(pkgs), " packages.\n",
-      "Either pick the one you want with `::` \n",
-      paste0(bullets_temp, collapse = "\n"), "\n",
-      "Or declare a preference with `conflict_prefer()`\n",
-      paste0(bullets_pers, collapse = "\n")
-    )
-    abort(msg)
+    namespace <- map_chr(pkgs, function(pkg) {
+      style_object(pkg, name)
+    })
+    names(namespace) <- rep("*", length(namespace))
+    prefer <- prefer_bullets(pkgs, name)
+
+    cli::cli_abort(c(
+      "{label_conflicted()} {.strong {name}} found in {length(pkgs)} packages.",
+      "Either pick the one you want with {.code ::}:",
+      namespace,
+      "Or declare a preference with {.fn {add_ns('conflicts_prefer')}}:",
+      prefer
+    ))
   }
 }
 
+add_ns <- function(fun = "") {
+  paste0(if (!pkg_attached("conflicted")) "conflicted::", fun)
+}
+
 # Helpers -----------------------------------------------------------------
+
+prefer_bullets <- function(pkgs, name) {
+  if (make.names(name) != name) {
+    name <- backtick(name)
+  }
+
+  ns <- add_ns()
+  prefer <- map_chr(pkgs, function(pkg) {
+    sprintf(
+      "{.run [%sconflicts_prefer(%s::%s)](conflicted::conflicts_prefer(%s::%s))}",
+      ns,
+      pkg,
+      name,
+      pkg,
+      name
+    )
+  })
+
+  names(prefer) <- rep("*", length(prefer))
+  prefer
+}
 
 is_infix_fun <- function(name) {
   base <- c(

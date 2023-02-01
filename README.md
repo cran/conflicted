@@ -5,7 +5,7 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/r-lib/conflicted/workflows/R-CMD-check/badge.svg)](https://github.com/r-lib/conflicted/actions)
+[![R-CMD-check](https://github.com/r-lib/conflicted/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/conflicted/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/r-lib/conflicted/branch/main/graph/badge.svg)](https://app.codecov.io/gh/r-lib/conflicted?branch=main)
 <!-- badges: end -->
@@ -39,13 +39,14 @@ library(conflicted)
 library(dplyr)
 
 filter(mtcars, cyl == 8)
-#> Error: [conflicted] `filter` found in 2 packages.
-#> Either pick the one you want with `::` 
-#> * dplyr::filter
-#> * stats::filter
-#> Or declare a preference with `conflict_prefer()`
-#> * conflict_prefer("filter", "dplyr")
-#> * conflict_prefer("filter", "stats")
+#> Error:
+#> ! [conflicted] filter found in 2 packages.
+#> Either pick the one you want with `::`:
+#> • dplyr::filter
+#> • stats::filter
+#> Or declare a preference with `conflicts_prefer()`:
+#> • `conflicts_prefer(dplyr::filter)`
+#> • `conflicts_prefer(stats::filter)`
 ```
 
 As suggested, you can either namespace individual calls:
@@ -60,8 +61,8 @@ dplyr::filter(mtcars, am & cyl == 8)
 Or declare a session-wide preference:
 
 ``` r
-conflict_prefer("filter", "dplyr")
-#> [conflicted] Will prefer dplyr::filter over any other package
+conflicts_prefer(dplyr::filter())
+#> [conflicted] Will prefer dplyr::filter over any other package.
 filter(mtcars, am & cyl == 8)
 #>                 mpg cyl disp  hp drat   wt qsec vs am gear carb
 #> Ford Pantera L 15.8   8  351 264 4.22 3.17 14.5  0  1    5    4
@@ -73,16 +74,16 @@ library call:
 
 ``` r
 library(dplyr)
-conflict_prefer("filter", "dplyr")
+conflicts_prefer(dplyr::filter)
 ```
 
 You can ask conflicted to report any conflicts in the current session:
 
 ``` r
 conflict_scout()
-#> 2 conflicts:
-#> * `filter`: [dplyr]
-#> * `lag`   : dplyr, stats
+#> 2 conflicts
+#> • `filter()`: dplyr
+#> • `lag()`: dplyr and stats
 ```
 
 Functions surrounded by `[]` have been chosen using one of the built-in
